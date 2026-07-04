@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #161b22;
+            color: #f0f6fc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Заголовок */
+        .header-block {
+            text-align: center;
+            max-width: 600px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+            width: 100%;
+        }
+
+        .header-block h1 {
+            font-size: 22px;
+            color: #58a6ff;
+            margin: 0 0 5px 0;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .header-block p {
+            font-size: 13px;
+            color: #8b949e;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* ПАНЕЛЬ КНОПОК ПЕРЕНЕСЕНА НАГОРУ ЩОБ НЕ ОБРІЗАЛАСЯ */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn {
+            color: #ffffff;
+            border: 1px solid rgba(240,246,252,0.1);
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-upload {
+            background-color: #2ea44f;
+        }
+        .btn-upload:hover {
+            background-color: #34d058;
+        }
+
+        .btn-copy {
+            background-color: #1f6feb;
+        }
+        .btn-copy:hover {
+            background-color: #388bfd;
+        }
+
+        .btn-clear {
+            background-color: #30363d;
+        }
+        .btn-clear:hover {
+            background-color: #ff4d4d;
+            color: #ffffff;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Основний контейнер */
+        .editor-container {
+            display: flex;
+            flex-direction: row;
+            background: #21262d;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            gap: 15px;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Бокова панель маркерів */
+        .toolbar {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 14px;
+            background: #161b22;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            min-width: 190px;
+        }
+
+        .color-item {
+            display: flex;
+            document: row;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .color-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            transition: transform 0.1s ease;
+            flex-shrink: 0;
+        }
+
+        .color-item:hover .color-circle {
+            transform: scale(1.1);
+        }
+
+        .color-item.active .color-circle {
+            border-color: #f0f6fc;
+            box-shadow: 0 0 6px rgba(255,255,255,0.3);
+        }
+
+        .color-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .label-red { color: #ff4d4d; }
+        .label-green { color: #2ea44f; }
+        .label-blue { color: #58a6ff; }
+        .label-black { color: #f0f6fc; background-color: #30363d; padding: 1px 5px; border-radius: 4px; }
+
+        .slider-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            width: 100%;
+            margin-top: 2px;
+            border-top: 1px solid #30363d;
+            padding-top: 10px;
+        }
+
+        .slider-block label {
+            font-size: 11px;
+            color: #8b949e;
+        }
+
+        .slider-block input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: #1f6feb;
+        }
+
+        /* Область мапи */
+        .canvas-wrapper {
+            position: relative;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: #0d1117;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+            background-color: #1f242c;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .upload-placeholder {
+            position: absolute;
+            color: #8b949e;
+            font-size: 14px;
+            text-align: center;
+            pointer-events: none;
+            padding: 15px;
+            z-index: 10;
+            line-height: 1.4;
+        }
+
+        /* Мобільна адаптація */
+        @media (max-width: 700px) {
+            .editor-container {
+                flex-direction: column-reverse;
+            }
+            .toolbar {
+                flex-direction: row;
+                justify-content: center;
+                min-width: auto;
+                flex-wrap: wrap;
+            }
+            .color-label {
+                display: none;
+            }
+            .slider-block {
+                border-top: none;
+                border-left: 1px solid #30363d;
+                padding-top: 0;
+                padding-left: 8px;
+                width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-block">
+    <h1>Тактична карта сервера</h1>
+    <p>Інтерактивний інструмент розвідки. Завантажте карту, позначте ситуацію та скопіюйте результат.</p>
+</div>
+
+<div class="action-buttons">
+    <label for="fileInput" class="btn btn-upload">📁 Завантажити карту</label>
+    <input type="file" id="fileInput" accept="image/*">
+
+    <button class="btn btn-copy" id="copyBtn">📋 Скопіювати в буфер (Ctrl+V)</button>
+    <button class="btn btn-clear" id="clearBtn">Очистити</button>
+</div>
+
+<div class="editor-container">
+    <div class="toolbar">
+        <div class="color-item active" data-color="255, 77, 77">
+            <div class="color-circle" style="background: rgb(255, 77, 77);"></div>
+            <span class="color-label label-red">Ситуація ⚠️</span>
+        </div>
+        
+        <div class="color-item" data-color="46, 164, 79">
+            <div class="color-circle" style="background: rgb(46, 164, 79);"></div>
+            <span class="color-label label-green">Fauna / Живі 🌲</span>
+        </div>
+        
+        <div class="color-item" data-color="31, 111, 235">
+            <div class="color-circle" style="background: rgb(31, 111, 235);"></div>
+            <span class="color-label label-blue">Перевірено ✅</span>
+        </div>
+        
+        <div class="color-item" data-color="22, 27, 34">
+            <div class="color-circle" style="background: rgb(22, 27, 34); border: 1px solid #30363d;"></div>
+            <span class="color-label label-black">Недосліджено 🔍</span>
+        </div>
+
+        <div class="slider-block">
+            <label for="opacitySlider">Прозорість</label>
+            <input type="range" id="opacitySlider" min="0.1" max="1.0" step="0.05" value="0.5">
+        </div>
+
+        <div class="slider-block">
+            <label for="sizeSlider">Розмір маркера</label>
+            <input type="range" id="sizeSlider" min="2" max="45" step="1" value="14">
+        </div>
+    </div>
+
+    <div class="canvas-wrapper">
+        <div class="upload-placeholder" id="placeholderText">Натисніть зелену кнопку вгорі,<br>щоб додати карту 🗺️</div>
+        <canvas id="rpMapCanvas" width="550" height="550"></canvas>
+    </div>
+</div>
+
+<script>
+    const mainCanvas = document.getElementById('rpMapCanvas');
+    const mainCtx = mainCanvas.getContext('2d');
+    
+    const drawingCanvas = document.createElement('canvas');
+    drawingCanvas.width = mainCanvas.width;
+    drawingCanvas.height = mainCanvas.height;
+    const drawCtx = drawingCanvas.getContext('2d');
+
+    const fileInput = document.getElementById('fileInput');
+    const placeholderText = document.getElementById('placeholderText');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    
+    const opacitySlider = document.getElementById('opacitySlider');
+    const sizeSlider = document.getElementById('sizeSlider');
+    const colorItems = document.querySelectorAll('.color-item');
+
+    let drawing = false;
+    let baseColorRGB = '255, 77, 77'; 
+    let mapImage = null;
+
+    drawCtx.lineCap = 'round';
+    drawCtx.lineJoin = 'round';
+
+    function updateBrushSettings() {
+        drawCtx.strokeStyle = `rgb(${baseColorRGB})`;
+        drawCtx.lineWidth = sizeSlider.value;
+    }
+    updateBrushSettings();
+
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            mapImage = new Image();
+            mapImage.onload = function() {
+                placeholderText.style.display = 'none';
+                redrawEverything();
+            };
+            mapImage.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function redrawEverything() {
+        mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+        if (mapImage) {
+            mainCtx.drawImage(mapImage, 0, 0, mainCanvas.width, mainCanvas.height);
+        }
+        mainCtx.save();
+        mainCtx.globalAlpha = opacitySlider.value;
+        mainCtx.drawImage(drawingCanvas, 0, 0);
+        mainCtx.restore();
+    }
+
+    colorItems.forEach(item => {
+        item.addEventListener('click', () => {
+            colorItems.forEach(c => c.classList.remove('active'));
+            item.classList.add('active');
+            baseColorRGB = item.getAttribute('data-color');
+            updateBrushSettings();
+        });
+    });
+
+    opacitySlider.addEventListener('input', redrawEverything);
+    sizeSlider.addEventListener('input', updateBrushSettings);
+
+    mainCanvas.addEventListener('mousedown', startDrawing);
+    mainCanvas.addEventListener('mouseup', stopDrawing);
+    mainCanvas.addEventListener('mousemove', draw);
+    mainCanvas.addEventListener('mouseleave', stopDrawing);
+
+    mainCanvas.addEventListener('touchstart', (e) => { startDrawing(e.touches[0]); e.preventDefault(); });
+    mainCanvas.addEventListener('touchend', stopDrawing);
+    mainCanvas.addEventListener('touchmove', (e) => { draw(e.touches[0]); e.preventDefault(); });
+
+    function startDrawing(e) {
+        if (!mapImage) return;
+        drawing = true;
+        drawCtx.beginPath();
+        const rect = mainCanvas.getBoundingClientRect();
+        // Враховуємо масштаб якщо канвас стиснувся
+        const scaleX = mainCanvas.width / rect.width;
+        const scaleY = mainCanvas.height / rect.height;
+        drawCtx.moveTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+    }
+
+    function stopDrawing() {
+        drawing = false;
+    }
+
+    function draw(e) {
+        if (!drawing) return;
+        const rect = mainCanvas.getBoundingClientRect();
+        const scaleX = mainCanvas.width / rect.width;
+        const scaleY = mainCanvas.height / rect.height;
+        drawCtx.lineTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+        drawCtx.stroke();
+        redrawEverything();
+    }
+
+    clearBtn.addEventListener('click', () => {
+        if (!mapImage) return;
+        drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+        redrawEverything();
+    });
+
+    copyBtn.addEventListener('click', () => {
+        if (!mapImage) return;
+        mainCanvas.toBlob(blob => {
+            if (!blob) return;
+            navigator.clipboard.write([
+                new ClipboardItem({ [blob.type]: blob })
+            ]).then(() => {
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '✅ Скопійовано в буфер!';
+                setTimeout(() => { copyBtn.innerHTML = originalText; }, 2000);
+            }).catch(() => {
+                alert('Браузер заблокував швидке копіювання.');
+            });
+        }, 'image/png');
+    });
+</script>
+
+</body>
+</html>
