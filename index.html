@@ -309,7 +309,14 @@
 
     let drawing = false;
     let baseColorRGB = '255, 77, 77'; 
-    let mapImage = null;
+    let mapImage = new Image();
+
+mapImage.onload = function () {
+    placeholderText.style.display = "none";
+    redrawEverything();
+};
+
+mapImage.src = "213.png";
 
     drawCtx.lineCap = 'round';
     drawCtx.lineJoin = 'round';
